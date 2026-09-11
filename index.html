@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easy Earning App</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    
+    /* SCROLLBAR HIDE FIX */
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+    ::-webkit-scrollbar {
+      display: none !important;
+      width: 0px !important;
+    }
+
+    body { 
+      background: #f4f7f6; 
+      color: #333; 
+      padding: 15px; 
+      padding-top: 75px; 
+      padding-bottom: 85px; 
+      min-height: 100vh; 
+    }
+
+    /* MODERN TOP APP BAR */
+    .top-app-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      z-index: 9999;
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+    .top-bar-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f2027;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .top-bar-badge {
+      background: #e6f7f5;
+      color: #11998e;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(17, 153, 142, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* SPLASH SCREEN */
+    #splash-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); z-index: 999999;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      color: white; transition: opacity 0.5s ease;
+    }
+    .splash-logo { width: 90px; height: 90px; border-radius: 22px; margin-bottom: 15px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    .splash-title { font-size: 22px; font-weight: bold; margin-bottom: 5px; color: #38ef7d; }
+    .splash-sub { font-size: 13px; opacity: 0.8; margin-bottom: 25px; }
+
+    /* PAGE LOADER */
+    .page-loader {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);
+      z-index: 99999; display: none; flex-direction: column;
+      justify-content: center; align-items: center; transition: opacity 0.3s ease;
+    }
+    .spinner {
+      width: 45px; height: 45px; border: 4px solid #e0e0e0;
+      border-top: 4px solid #11998e; border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    .splash-spinner {
+      width: 35px; height: 35px; border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top: 3px solid #38ef7d; border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    .loader-text { margin-top: 15px; font-size: 13px; font-weight: bold; color: #11998e; letter-spacing: 1px; }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* PAGE SYSTEM */
+    .page { display: none; animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* CARDS & HEADERS */
+    .header-card { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; border-radius: 20px; padding: 22px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(56, 239, 125, 0.25); }
+    .balance-val { font-size: 34px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.15); margin: 5px 0; }
+
+    .card { background: #ffffff; border-radius: 18px; padding: 20px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); }
+    .card h3 { margin-bottom: 8px; color: #11998e; font-size: 18px; }
+    .card p { font-size: 13px; color: #666; margin-bottom: 15px; }
+
+    /* BUTTONS */
+    .btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; border: none; padding: 13px 20px; border-radius: 25px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.2s; box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3); }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { background: #ccc; color: #666; cursor: not-allowed; box-shadow: none; }
+    .btn-secondary { background: #eef2f5; color: #333; margin-bottom: 15px; width: auto; padding: 8px 18px; font-size: 13px; display: inline-block; font-weight: 600; }
+    .btn-withdraw { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: #fff; box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3); }
+
+    /* QUIZ OPTIONS */
+    .quiz-options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .quiz-opt-btn { background: #f8f9fa; border: 2px solid #11998e; color: #11998e; padding: 12px; border-radius: 14px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+    .quiz-opt-btn:active { background: #11998e; color: #fff; }
+    .quiz-opt-btn:disabled { border-color: #e0e0e0; color: #aaa; background: #f0f0f0; cursor: not-allowed; }
+
+    /* BOTTOM NAV BAR */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: #ffffff; display: flex; justify-content: space-around;
+      align-items: center; padding: 10px 0;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05); z-index: 999;
+      border-top-left-radius: 22px; border-top-right-radius: 22px;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #999; font-size: 11px; font-weight: 600; cursor: pointer; flex: 1; transition: color 0.2s;
+    }
+    .nav-item svg { width: 22px; height: 22px; fill: currentColor; margin-bottom: 3px; }
+    .nav-item.active { color: #11998e; }
+
+    /* SPIN WHEEL */
+    .wheel-container { position: relative; width: 280px; height: 280px; margin: 15px auto; }
+    .wheel-pointer {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0; 
+      border-left: 14px solid transparent; border-right: 14px solid transparent;
+      border-top: 24px solid #ff1744; z-index: 10;
+    }
+    #wheel { 
+      width: 280px; height: 280px; display: block; border-radius: 50%; 
+      transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
+    }
+
+    /* SCRATCH CARD STYLES */
+    .scratch-container {
+      position: relative; width: 260px; height: 170px; margin: 15px auto;
+      border-radius: 16px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      border: 2px solid #ffd700; background: #fff;
+    }
+    .scratch-background {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      background: radial-gradient(circle, #2c3e50, #000); color: #fff;
+    }
+    .scratch-background h2 { font-size: 36px; color: #ffd700; font-weight: bold; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+    .scratch-background p { font-size: 13px; color: #ccc; }
+    #scratch-canvas {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; touch-action: none;
+    }
+    
+    .scratch-loader {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.95); display: none;
+      flex-direction: column; justify-content: center; align-items: center;
+      z-index: 20; border-radius: 15px;
+    }
+
+    /* POPUP MODAL */
+    .popup-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5); z-index: 10000;
+      display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+    }
+    .popup-card { background: #fff; border-radius: 24px; padding: 25px 20px; text-align: center; color: #333; width: 85%; max-width: 320px; box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+
+    /* FORM ELEMENTS & HISTORY */
+    input, select { width: 100%; padding: 13px; margin: 8px 0; border-radius: 12px; border: 1px solid #e0e0e0; background: #f9f9f9; color: #333; font-size: 14px; outline: none; }
+    label { text-align: left; display: block; font-size: 12px; font-weight: 700; color: #666; margin-top: 10px; }
+    .profile-list-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+    
+    .history-card { background: #fff; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; text-align: left; border-left: 4px solid #11998e; box-shadow: 0 3px 10px rgba(0,0,0,0.03); }
+    .history-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #333; }
+    .history-status { background: #fff8e1; color: #f57f17; font-size: 11px; padding: 3px 10px; border-radius: 12px; border: 1px solid #ffe082; }
+    .history-details { font-size: 12px; color: #666; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <!-- MODERN TOP APP BAR -->
+  <div class="top-app-bar">
+    <div class="top-bar-title">
+      <span>💎</span> Easy Earning
+    </div>
+    <div class="top-bar-badge">
+      💰 <span id="top-bar-points">0</span> Pts
+    </div>
+  </div>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash-screen">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135706.png" alt="App Logo" class="splash-logo">
+    <div class="splash-title">Easy Earn Cash</div>
+    <div class="splash-sub">দৈনিক টাস্ক সম্পন্ন করে আয় করুন</div>
+    <div class="splash-spinner"></div>
+  </div>
+
+  <!-- GLOBAL LOADER -->
+  <div id="page-loader" class="page-loader">
+    <div class="spinner"></div>
+    <div class="loader-text" id="global-loader-text">L O A D I N G...</div>
+  </div>
+
+  <!-- POP-UP MODAL -->
+  <div id="app-popup" class="popup-overlay">
+    <div class="popup-card">
+      <div style="font-size: 45px; margin-bottom: 10px;" id="popup-icon">🎉</div>
+      <h3 style="color: #11998e; font-size: 20px; margin-bottom: 8px;" id="popup-title">অভিনন্দন!</h3>
+      <p style="font-size: 14px; color: #666; margin-bottom: 20px;" id="popup-msg">আপনি জিতেছেন পয়েন্ট!</p>
+      <button class="btn" onclick="closeAppPopup()">ঠিক আছে</button>
+    </div>
+  </div>
+
+  <!-- Header Balance -->
+  <div class="header-card">
+    <div>আপনার বর্তমান ব্যালেন্স</div>
+    <div class="balance-val" id="user-points">0</div>
+    <div>আনুমানিক মূল্য: ৳/₹<span id="user-taka">0.00</span></div>
+  </div>
+
+  <!-- PAGE 1: HOME -->
+  <div id="page-home" class="page" style="display: block;">
+    <div class="card">
+      <h3>🎁 ডেইলি বোনাস</h3>
+      <p>প্রতিদিন একবার ১০০ পয়েন্ট ফ্রী বোনাস নিন!</p>
+      <button class="btn" onclick="claimDailyBonus()">বোনাস দাবি করুন</button>
+    </div>
+
+    <div class="card">
+      <h3>🎡 স্পিন অ্যান্ড আর্ন</h3>
+      <p>ভাগ্য পরীক্ষা করুন এবং পয়েন্ট জিতুন</p>
+      <button class="btn" onclick="showPage('page-spin', 'nav-games')">স্পিন গেম খেলুন ➔</button>
+    </div>
+
+    <div class="card">
+      <h3>✨ স্কেচ ও উইন</h3>
+      <p>কার্ড ঘষে জিতে নিন আকর্ষণীয় পয়েন্ট</p>
+      <button class="btn" onclick="showPage('page-scratch', 'nav-games')">স্কেচ গেম খেলুন ➔</button>
+    </div>
+
+    <div class="card">
+      <h3>🧮 ম্যাথ কুইজ</h3>
+      <p>সহজ অঙ্কের অপশনে ক্লিক করে উত্তর দিন</p>
+      <button class="btn" onclick="showPage('page-quiz', 'nav-games')">কুইজ গেম খেলুন ➔</button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: GAMES LIST -->
+  <div id="page-games" class="page">
+    <h3 style="margin: 0 0 15px 5px; color: #333;">🎮 আর্নিং গেমসমূহ</h3>
+    
+    <div class="card">
+      <h3>🎡 স্পিন অ্যান্ড আর্ন</h3>
+      <p>ভাগ্য পরীক্ষা করুন এবং পয়েন্ট জিতুন</p>
+      <button class="btn" onclick="showPage('page-spin', 'nav-games')">স্পিন গেম খেলুন ➔</button>
+    </div>
+
+    <div class="card">
+      <h3>✨ স্কেচ ও উইন</h3>
+      <p>কার্ড ঘষে জিতে নিন আকর্ষণীয় পয়েন্ট</p>
+      <button class="btn" onclick="showPage('page-scratch', 'nav-games')">স্কেচ গেম খেলুন ➔</button>
+    </div>
+
+    <div class="card">
+      <h3>🧮 ম্যাথ কুইজ</h3>
+      <p>সহজ অঙ্কের অপশনে ক্লিক করে উত্তর দিন</p>
+      <button class="btn" onclick="showPage('page-quiz', 'nav-games')">কুইজ গেম খেলুন ➔</button>
+    </div>
+  </div>
+
+  <!-- SUB-PAGE: SPIN WHEEL -->
+  <div id="page-spin" class="page">
+    <button class="btn btn-secondary" onclick="showPage('page-games', 'nav-games')">⬅ গেমস তালিকায় ফিরুন</button>
+    <div class="card">
+      <h3>🎡 স্পিন অ্যান্ড আর্ন</h3>
+      <p style="font-size: 12px; color: #666;">তীর চিহ্নটি যেখানে থামবে সেই পয়েন্ট পাবেন!</p>
+      
+      <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheel" width="280" height="280"></canvas>
+      </div>
+
+      <button class="btn" id="spin-btn" onclick="spinWheel()">ঘুরান ও জিতুন</button>
+    </div>
+  </div>
+
+  <!-- SUB-PAGE: SCRATCH CARD -->
+  <div id="page-scratch" class="page">
+    <button class="btn btn-secondary" onclick="showPage('page-games', 'nav-games')">⬅ গেমস তালিকায় ফিরুন</button>
+    <div class="card">
+      <h3>✨ স্কেচ ও উইন</h3>
+      <p style="font-size: 12px; color: #666;">আঙ্গুল দিয়ে ঘষে স্কেচ রিভিল করুন!</p>
+      
+      <div class="scratch-container">
+        <div class="scratch-loader" id="scratch-loader">
+          <div class="spinner"></div>
+          <div style="font-size: 12px; font-weight: bold; color: #11998e; margin-top: 8px;" id="scratch-loader-text">নতুন কার্ড আসছে...</div>
+        </div>
+        <div class="scratch-background">
+          <p>🎉 আপনি পেয়েছেন</p>
+          <h2 id="scratch-points-val">0</h2>
+          <p>পয়েন্ট!</p>
+        </div>
+        <canvas id="scratch-canvas" width="260" height="170"></canvas>
+      </div>
+
+      <button class="btn" onclick="initScratchCard()">নতুন কার্ড নিন</button>
+    </div>
+  </div>
+
+  <!-- SUB-PAGE: MATH QUIZ -->
+  <div id="page-quiz" class="page">
+    <button class="btn btn-secondary" onclick="showPage('page-games', 'nav-games')">⬅ গেমস তালিকায় ফিরুন</button>
+    <div class="card">
+      <h3>🧮 সহজ গণিত সমাধান</h3>
+      <p style="font-size: 12px; color: #666;">সঠিক অপশনে ক্লিক করে পয়েন্ট আর্ন করুন</p>
+      <div id="quiz-question" style="font-size: 28px; font-weight: bold; margin: 20px 0; color: #11998e;">...</div>
+      
+      <div class="quiz-options-container" id="quiz-options">
+        <!-- Dynamic Options Buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: WALLET / WITHDRAW -->
+  <div id="page-withdraw" class="page">
+    <div class="card">
+      <h3 style="color: #ff416c;">💸 টাকা তুলুন (Withdraw)</h3>
+      <p>সর্বনিম্ন উইথড্র: ১০০০ পয়েন্ট = ৳১০ BDT / ₹১০ INR</p>
+      
+      <label>দেশ নির্বাচন করুন:</label>
+      <select id="country-select" onchange="updatePaymentMethods()">
+        <option value="bd">🇧🇩 বাংলাদেশ (Bangladesh)</option>
+        <option value="in">🇮🇳 ইন্ডিয়া (India)</option>
+      </select>
+
+      <label>পেমেন্ট মেথড:</label>
+      <select id="payment-method" onchange="updateAccountPlaceholder()"></select>
+      
+      <label id="account-label">একাউন্ট ডিটেইলস:</label>
+      <input type="text" id="account-number" placeholder="এখানে আপনার বিবরণ দিন">
+      
+      <label>পয়েন্টের পরিমাণ:</label>
+      <input type="number" id="withdraw-points" placeholder="পয়েন্টের পরিমাণ (যেমন: 1000)">
+      
+      <button class="btn btn-withdraw" style="margin-top: 15px;" onclick="requestWithdrawal()">পেমেন্ট রিকোয়েস্ট পাঠান</button>
+    </div>
+  </div>
+
+  <!-- PAGE 4: WITHDRAWAL HISTORY -->
+  <div id="page-history" class="page">
+    <h3 style="margin: 0 0 15px 5px; color: #333;">📜 উইথড্রোল হিস্ট্রি</h3>
+    <div id="history-container"></div>
+  </div>
+
+  <!-- PAGE 5: PROFILE -->
+  <div id="page-profile" class="page">
+    <div class="card">
+      <div style="font-size: 50px; margin-bottom: 10px;">👤</div>
+      <h3 style="color: #333;">ইউজার প্রোফাইল</h3>
+      <p style="font-size: 12px; color: #888;">ID: #EE894201</p>
+      
+      <div style="margin-top: 15px; text-align: left;">
+        <div class="profile-list-item">
+          <span>মোট অর্জিত পয়েন্ট:</span>
+          <strong id="profile-total-points" style="color:#11998e;">0</strong>
+        </div>
+        <div class="profile-list-item">
+          <span>একাউন্ট স্ট্যাটাস:</span>
+          <strong style="color: #11998e;">একটিভ (Active)</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="showPage('page-home', 'nav-home')">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>হোম</span>
+    </div>
+    
+    <div class="nav-item" id="nav-games" onclick="showPage('page-games', 'nav-games')">
+      <svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H9v2H8v-2H6v-1h2V10h1v2h2v1zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      <span>গেমস</span>
+    </div>
+    
+    <div class="nav-item" id="nav-withdraw" onclick="showPage('page-withdraw', 'nav-withdraw')">
+      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      <span>ওয়ালেট</span>
+    </div>
+
+    <div class="nav-item" id="nav-history" onclick="showPage('page-history', 'nav-history')">
+      <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      <span>হিস্ট্রি</span>
+    </div>
+    
+    <div class="nav-item" id="nav-profile" onclick="showPage('page-profile', 'nav-profile')">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>প্রোফাইল</span>
+    </div>
+  </div>
+
+  <script>
+    // AUDIO SYSTEM
+    var audioCtx = null;
+
+    function initAudioContext() {
+      if (!audioCtx) {
+        var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      try {
+        initAudioContext();
+        if (!audioCtx) return;
+
+        var now = audioCtx.currentTime;
+
+        if (type === 'tick') {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(300, now + 0.03);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now); osc.stop(now + 0.03);
+        }
+        else if (type === 'win') {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.35);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now); osc.stop(now + 0.35);
+        } else if (type === 'wrong') {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now); osc.stop(now + 0.25);
+        }
+      } catch(e) {}
+    }
+
+    function playSpinSound() {
+      var intervals = [100, 100, 100, 110, 120, 140, 170, 210, 260, 320, 400, 500, 650];
+      var index = 0;
+      function triggerNextTick() {
+        if (index < intervals.length) {
+          playSound('tick');
+          setTimeout(triggerNextTick, intervals[index]);
+          index++;
+        }
+      }
+      triggerNextTick();
+    }
+
+    // SPLASH SCREEN
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var splash = document.getElementById('splash-screen');
+        if (splash) {
+          splash.style.opacity = '0';
+          splash.style.pointerEvents = 'none';
+          setTimeout(function() { splash.style.display = 'none'; }, 500);
+        }
+      }, 1200);
+      drawWheel();
+    });
+
+    // PAGE SWITCHING LOGIC
+    function showPage(pageId, navId) {
+      initAudioContext();
+      var loader = document.getElementById('page-loader');
+      document.getElementById('global-loader-text').innerText = "L O A D I N G...";
+      if (loader) loader.style.display = 'flex';
+
+      setTimeout(function() {
+        var allPages = document.getElementsByClassName('page');
+        for (var i = 0; i < allPages.length; i++) {
+          allPages[i].style.display = 'none';
+        }
+
+        var selectedPage = document.getElementById(pageId);
+        if (selectedPage) {
+          selectedPage.style.display = 'block';
+        }
+
+        if (navId) {
+          var allNavs = document.getElementsByClassName('nav-item');
+          for (var j = 0; j < allNavs.length; j++) {
+            allNavs[j].classList.remove('active');
+          }
+          var selectedNav = document.getElementById(navId);
+          if (selectedNav) selectedNav.classList.add('active');
+        }
+
+        window.scrollTo(0, 0);
+
+        if (pageId === 'page-spin') {
+          resetSpinState();
+          drawWheel();
+        } else if (pageId === 'page-scratch') {
+          initScratchCard();
+        } else if (pageId === 'page-quiz') {
+          generateQuiz();
+        } else if (pageId === 'page-withdraw') {
+          updatePaymentMethods();
+        } else if (pageId === 'page-history') {
+          renderHistory();
+        }
+
+        if (loader) loader.style.display = 'none';
+      }, 200);
+    }
+
+    // POINTS SYSTEM
+    var points = parseInt(localStorage.getItem('user_points')) || 0;
+    updateUI();
+
+    function updatePoints(addPoints) {
+      points += addPoints;
+      localStorage.setItem('user_points', points);
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById('user-points').innerText = points;
+      document.getElementById('top-bar-points').innerText = points;
+      document.getElementById('user-taka').innerText = (points / 100).toFixed(2);
+      document.getElementById('profile-total-points').innerText = points;
+    }
+
+    // POPUP MODAL
+    function showPopup(title, msg, icon) {
+      document.getElementById('popup-title').innerText = title;
+      document.getElementById('popup-msg').innerText = msg;
+      document.getElementById('popup-icon').innerText = icon || "🎉";
+      document.getElementById('app-popup').style.display = 'flex';
+    }
+
+    function closeAppPopup() {
+      document.getElementById('app-popup').style.display = 'none';
+      resetSpinState();
+    }
+
+    // DAILY BONUS
+    function claimDailyBonus() {
+      initAudioContext();
+      var lastClaim = localStorage.getItem('last_bonus_time');
+      var now = new Date().getTime();
+
+      if (lastClaim && (now - lastClaim < 86400000)) {
+        playSound('wrong');
+        showPopup("দুঃখিত!", "আজকের বোনাস ইতোমধ্যে নিয়েছেন। ২৪ ঘণ্টা পর আবার পাবেন।", "⏳");
+      } else {
+        localStorage.setItem('last_bonus_time', now);
+        updatePoints(100);
+        playSound('win');
+        showPopup("অভিনন্দন!", "আপনি ১০০ পয়েন্ট ডেইলি বোনাস পেয়েছেন!", "🎁");
+      }
+    }
+
+    // SPIN WHEEL SYSTEM
+    var options = [10, 20, 50, 0, 100, 30, 5, 15];
+    var colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#00bcd4', '#4caf50'];
+    var arc = (Math.PI * 2) / options.length;
+    var isSpinning = false;
+    var currentRotation = 0;
+
+    function resetSpinState() {
+      isSpinning = false;
+      var btn = document.getElementById('spin-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = "ঘুরান ও জিতুন";
+      }
+    }
+
+    function drawWheel() {
+      var canvas = document.getElementById('wheel');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 280, 280);
+
+      for (var i = 0; i < options.length; i++) {
+        var angle = i * arc;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.arc(140, 140, 130, angle, angle + arc, false);
+        ctx.arc(140, 140, 0, angle + arc, angle, true);
+        ctx.fill();
+
+        ctx.save();
+        ctx.fillStyle = "white";
+        ctx.font = "bold 16px Arial";
+        ctx.translate(140 + Math.cos(angle + arc / 2) * 85, 140 + Math.sin(angle + arc / 2) * 85);
+        ctx.rotate(angle + arc / 2 + Math.PI / 2);
+        ctx.fillText(options[i], -ctx.measureText(options[i]).width / 2, 0);
+        ctx.restore();
+      }
+    }
+
+    function spinWheel() {
+      initAudioContext();
+      if (isSpinning) return;
+      isSpinning = true;
+
+      var btn = document.getElementById('spin-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "ঘুরছে...";
+      }
+
+      playSpinSound();
+
+      var winningIndex = Math.floor(Math.random() * options.length);
+      var wonPoints = options[winningIndex];
+
+      var degreesPerSlice = 360 / options.length;
+      var targetSliceDegree = 270 - (winningIndex * degreesPerSlice) - (degreesPerSlice / 2);
+      
+      var extraSpins = 1800;
+      var newRotation = currentRotation + extraSpins + (targetSliceDegree - (currentRotation % 360));
+      if (newRotation <= currentRotation) {
+        newRotation += extraSpins;
+      }
+      currentRotation = newRotation;
+
+      var wheelCanvas = document.getElementById('wheel');
+      wheelCanvas.style.transform = 'rotate(' + currentRotation + 'deg)';
+
+      setTimeout(function() {
+        var loader = document.getElementById('page-loader');
+        document.getElementById('global-loader-text').innerText = "পয়েন্ট প্রসেসিং হচ্ছে...";
+        if (loader) loader.style.display = 'flex';
+
+        setTimeout(function() {
+          if (loader) loader.style.display = 'none';
+          updatePoints(wonPoints);
+
+          if (wonPoints > 0) {
+            playSound('win');
+            showPopup("অভিনন্দন!", "আপনি " + wonPoints + " পয়েন্ট পেয়েছেন!", "🎉");
+          } else {
+            playSound('wrong');
+            showPopup("অফসোস!", "এবার ০ পয়েন্ট পেয়েছেন।", "😢");
+          }
+        }, 1500);
+      }, 4000);
+    }
+
+    // SCRATCH CARD SYSTEM
+    var scratchPoints = 0;
+    var scratchClaimed = false;
+
+    function initScratchCard() {
+      scratchClaimed = false;
+      document.getElementById('scratch-loader').style.display = 'none';
+
+      var possiblePoints = [10, 20, 30, 40, 50, 100];
+      scratchPoints = possiblePoints[Math.floor(Math.random() * possiblePoints.length)];
+      document.getElementById('scratch-points-val').innerText = scratchPoints;
+
+      var canvas = document.getElementById('scratch-canvas');
+      var ctx = canvas.getContext('2d');
+
+      ctx.globalCompositeOperation = 'source-over';
+      
+      var grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      grad.addColorStop(0, '#ffe066');
+      grad.addColorStop(0.5, '#f5af19');
+      grad.addColorStop(1, '#e65c00');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      for (var i = 0; i < 100; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#222';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('✨ ঘষে রিভিল করুন ✨', canvas.width / 2, canvas.height / 2 + 5);
+
+      var isDrawing = false;
+
+      function scratch(e) {
+        if (!isDrawing) return;
+        var rect = canvas.getBoundingClientRect();
+        var x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+        var y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        checkScratchProgress();
+      }
+
+      function startScratch(e) { initAudioContext(); isDrawing = true; scratch(e); }
+      function stopScratch() { isDrawing = false; }
+
+      canvas.onmousedown = startScratch;
+      canvas.onmousemove = scratch;
+      canvas.onmouseup = stopScratch;
+
+      canvas.ontouchstart = startScratch;
+      canvas.ontouchmove = scratch;
+      canvas.ontouchend = stopScratch;
+    }
+
+    function checkScratchProgress() {
+      if (scratchClaimed) return;
+
+      var canvas = document.getElementById('scratch-canvas');
+      var ctx = canvas.getContext('2d');
+      var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var clearPixels = 0;
+
+      for (var i = 0; i < imgData.data.length; i += 4) {
+        if (imgData.data[i + 3] === 0) { clearPixels++; }
+      }
+
+      if (clearPixels > (imgData.data.length / 4) * 0.35) {
+        scratchClaimed = true;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        document.getElementById('scratch-loader-text').innerText = "পয়েন্ট ভেরিফাই হচ্ছে...";
+        document.getElementById('scratch-loader').style.display = 'flex';
+
+        setTimeout(function() {
+          updatePoints(scratchPoints);
+          playSound('win');
+          showPopup("অভিনন্দন!", "আপনি স্কেচ করে " + scratchPoints + " পয়েন্ট পেয়েছেন!", "✨");
+
+          setTimeout(function() {
+            document.getElementById('scratch-loader-text').innerText = "নতুন কার্ড আসছে...";
+            initScratchCard();
+          }, 1000);
+        }, 1500);
+      }
+    }
+
+    // MATH QUIZ SYSTEM
+    var quizCorrectAns = 0;
+
+    function generateQuiz() {
+      var n1 = Math.floor(Math.random() * 20) + 1;
+      var n2 = Math.floor(Math.random() * 20) + 1;
+      quizCorrectAns = n1 + n2;
+
+      document.getElementById('quiz-question').innerText = n1 + " + " + n2 + " = ?";
+
+      var optionsArr = [quizCorrectAns];
+      while (optionsArr.length < 4) {
+        var wrongOpt = quizCorrectAns + (Math.floor(Math.random() * 10) - 5);
+        if (wrongOpt >= 0 && optionsArr.indexOf(wrongOpt) === -1) {
+          optionsArr.push(wrongOpt);
+        }
+      }
+
+      optionsArr.sort(function() { return 0.5 - Math.random(); });
+
+      var optionsContainer = document.getElementById('quiz-options');
+      optionsContainer.innerHTML = '';
+
+      for (var i = 0; i < optionsArr.length; i++) {
+        var btn = document.createElement('button');
+        btn.className = 'quiz-opt-btn';
+        btn.innerText = optionsArr[i];
+        btn.setAttribute('onclick', 'checkQuizOption(' + optionsArr[i] + ', this)');
+        optionsContainer.appendChild(btn);
+      }
+    }
+
+    function checkQuizOption(selectedOption, clickedBtn) {
+      initAudioContext();
+      
+      var allBtns = document.querySelectorAll('.quiz-opt-btn');
+      allBtns.forEach(function(btn) { btn.disabled = true; });
+      
+      var originalText = clickedBtn.innerText;
+      clickedBtn.innerText = "⏳ ভেরিফাই হচ্ছে...";
+
+      setTimeout(function() {
+        if (selectedOption === quizCorrectAns) {
+          updatePoints(20);
+          playSound('win');
+          showPopup("সঠিক উত্তর!", "আপনার উত্তর সঠিক হয়েছে! +২০ পয়েন্ট যোগ হলো।", "🎉");
+        } else {
+          playSound('wrong');
+          showPopup("ভুল উত্তর!", "সঠিক উত্তরটি ছিল: " + quizCorrectAns, "❌");
+        }
+        generateQuiz();
+      }, 1200);
+    }
+
+    // WITHDRAW
+    function updatePaymentMethods() {
+      var country = document.getElementById('country-select').value;
+      var methodSelect = document.getElementById('payment-method');
+      methodSelect.innerHTML = '';
+
+      if (country === 'bd') {
+        methodSelect.innerHTML = '<option value="binance">বাইনান্স - Binance (Pay ID / USDT)</option>';
+      } else {
+        methodSelect.innerHTML = '<option value="redeem">গুগল প্লে রিডিম কোড</option><option value="bank_upi">ব্যাংক একাউন্ট / UPI</option>';
+      }
+      updateAccountPlaceholder();
+    }
+
+    function updateAccountPlaceholder() {
+      var method = document.getElementById('payment-method').value;
+      var accountInput = document.getElementById('account-number');
+      var label = document.getElementById('account-label');
+
+      if (method === 'binance') {
+        label.innerText = "Binance Pay ID / BEP20 Address:";
+        accountInput.placeholder = "উদাহরণ: 245896321";
+      } else if (method === 'redeem') {
+        label.innerText = "ইমেইল বা হোয়াটসঅ্যাপ নম্বর:";
+        accountInput.placeholder = "Email / WhatsApp No.";
+      } else {
+        label.innerText = "UPI ID / ব্যাংক ডিটেইলস:";
+        accountInput.placeholder = "UPI ID বা Bank Account";
+      }
+    }
+
+    function requestWithdrawal() {
+      initAudioContext();
+      var acc = document.getElementById('account-number').value.trim();
+      var reqP = parseInt(document.getElementById('withdraw-points').value);
+      var methodText = document.getElementById('payment-method').options[document.getElementById('payment-method').selectedIndex].text;
+
+      if (!acc) { playSound('wrong'); showPopup("ভুল তথ্য", "সঠিক একাউন্ট নাম্বার দিন", "⚠️"); return; }
+      if (isNaN(reqP) || reqP < 1000) { playSound('wrong'); showPopup("কম পয়েন্ট", "সর্বনিম্ন ১০০০ পয়েন্ট উইথড্র করা যাবে", "⚠️"); return; }
+      if (reqP > points) { playSound('wrong'); showPopup("পর্যাপ্ত পয়েন্ট নেই", "ব্যালেন্স চেক করুন", "❌"); return; }
+
+      saveWithdrawalHistory(methodText, acc, reqP);
+
+      updatePoints(-reqP);
+      document.getElementById('account-number').value = '';
+      document.getElementById('withdraw-points').value = '';
+      playSound('win');
+      showPopup("সফল!", "উইথড্র রিকোয়েস্ট জমা হয়েছে!", "✅");
+      showPage('page-history', 'nav-history');
+    }
+
+    // HISTORY
+    function saveWithdrawalHistory(method, account, pts) {
+      var history = JSON.parse(localStorage.getItem('withdraw_history')) || [];
+      var newRecord = {
+        method: method,
+        account: account,
+        points: pts,
+        amount: (pts / 100).toFixed(2),
+        date: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }),
+        status: 'পেন্ডিং (Pending)'
+      };
+      history.unshift(newRecord);
+      localStorage.setItem('withdraw_history', JSON.stringify(history));
+    }
+
+    function renderHistory() {
+      var container = document.getElementById('history-container');
+      var history = JSON.parse(localStorage.getItem('withdraw_history')) || [];
+
+      if (history.length === 0) {
+        container.innerHTML = '<div class="card"><p style="margin:0;">এখনো কোনো উইথড্রোল হিস্ট্রি নেই!</p></div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < history.length; i++) {
+        var item = history[i];
+        html += '<div class="history-card">' +
+                  '<div class="history-header">' +
+                    '<span>' + item.points + ' পয়েন্ট (৳/₹' + item.amount + ')</span>' +
+                    '<span class="history-status">' + item.status + '</span>' +
+                  '</div>' +
+                  '<div class="history-details">' +
+                    '<div><b>মেথড:</b> ' + item.method + '</div>' +
+                    '<div><b>একাউন্ট:</b> ' + item.account + '</div>' +
+                    '<div style="font-size:11px; color:#888; margin-top:3px;"><b>তারিখ:</b> ' + item.date + '</div>' +
+                  '</div>' +
+                '</div>';
+      }
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
